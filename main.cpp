@@ -45,6 +45,13 @@ void fill_Vector ()
         myPoints[i] = generate_Point();
 }
 
+double absolute(ul n)
+{
+    if (n > 0)
+        return double(n);
+    return n * -1;
+}
+
 /* Z CURVE */
 vector<string> get_Bits(point P)
 {
@@ -101,52 +108,18 @@ vector<dist_point> knn(point p, int k)
     return vector<dist_point>(distances.begin() + 1, distances.begin() + k + 1);
 }
 
-int idx_BSearch(int l, int r, int x)
-{
-    if (r >= l) 
-    {
-        int mid = l + (r - l) / 2;
-        
-        if (z_curve[mid].first == x)
-            return mid;
-        
-        if (z_curve[mid].first > x)
-            return idx_BSearch(l, mid - 1, x);
- 
-        return idx_BSearch(mid + 1, r, x);
-    }
-    return -1;
-
-}
-
 vector<dist_point> z_knn(point p, int k)
 {
-    int h{1}, i, j, index = idx_BSearch(0, z_curve.size(), p.z_value);
+    int i;
     
     vector<dist_point> distances;
     
-    if (index + k < n_data && index - k >= 0)
-    {
-        for (i = index + h, j = index - h; h <= k; h++, i+=h, j-=h )
-        {
-            distances.push_back(make_pair(euclideanDistance(p, *z_curve[i].second),z_curve[i].second));
-            distances.push_back(make_pair(euclideanDistance(p, *z_curve[j].second),z_curve[j].second));
-        }
-    }
-    else if (index - k <= 0)
-    {
-        for (i = index + h; h <= k; h++, i+=h )
-            distances.push_back(make_pair(euclideanDistance(p, *z_curve[i].second),z_curve[i].second));
-    }
-    else if (index + k >= n_data)
-    {
-        for (i = index - h; h <= k; h++, i-=h )
-            distances.push_back(make_pair(euclideanDistance(p, *z_curve[i].second),z_curve[i].second));
-    }
+    for (i = 0; i < n_data; ++i)
+        distances.push_back(make_pair(absolute(p.z_value - z_curve[i].second->z_value),z_curve[i].second));
     
     sort(distances.begin(), distances.end());
     
-    return vector<dist_point>(distances.begin(), distances.begin() + k);
+    return vector<dist_point>(distances.begin() + 1, distances.begin() + k + 1);
 }
 
 
@@ -192,7 +165,7 @@ int main()
         vector<dist_point> knn_z_ord = z_knn(myPoints[500], k[i]);
         
         /* MATCH RESULTS */
-        cout << "-------------   "<< k[i] << "-------------\n";
+        cout << "-------------   "<< k[i] << "   -------------\n";
         match_queries(knn_real, knn_z_ord);
         cout << "-------------   *     -------------\n";
     }
